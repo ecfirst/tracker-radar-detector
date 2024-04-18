@@ -130,8 +130,8 @@ function _getSurrogates (domain) {
     const trackerSurrogates = []
 
     if (sharedData.surrogates[domain]) {
-        for (const [req, resource] of sharedData.surrogates[domain]) {
-            trackerSurrogates.push({rule: req, replaceWith: resource})
+        for (const surrogate of sharedData.surrogates[domain]) {
+            trackerSurrogates.push({rule: surrogate.regexRule, replaceWith: surrogate.surrogate})
         }
     }
 

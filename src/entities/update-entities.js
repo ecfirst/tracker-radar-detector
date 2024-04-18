@@ -3,6 +3,7 @@
  */
 
 const fs = require('fs')
+const path = require('path')
 const exec = require('child_process').exec
 const request = require('request')
 const parse = require('csv-parse/lib/sync')
@@ -17,6 +18,8 @@ const whoisRegexArray = whoisIgnoreList.map(regex => new RegExp(regex, 'gi'))
 const SSLRegexArray = SSLIgnoreList.map(regex => new RegExp(regex, 'gi'))
 const currentDate = new Date(Date.now()).toISOString()
 const WHOIS_XML_TOKEN = ''// credentials
+const region = config.regionCode
+const Progress = require('progress')
 
 /**
  * Fetch x509 certificate data for domain by dropping to bash and using openSSL.
@@ -46,8 +49,13 @@ const fetchWhoisData = domain => {
             if (error) {
                 resolve('errored out')
             }
-            const jsonResponse = JSON.parse(body)
-            if (jsonResponse.ErrorMessage) {
+            let jsonResponse
+            try {
+                jsonResponse = JSON.parse(body)
+                if (jsonResponse.ErrorMessage) {
+                    resolve('errored out')
+                }
+            } catch (error) {
                 resolve('errored out')
             }
             resolve(jsonResponse)
@@ -223,23 +231,27 @@ const chooseName = domainObj => {
 }
 
 async function checkTrackerFiles(directory) {
-    const entityCSV = fs.readFileSync('./data/entityUpdates.csv')
+    const dataPath = path.join(__dirname, 'data', 'entityUpdates.csv')
+    const entityCSV = fs.readFileSync(dataPath)
     const checkedDomains = parse(entityCSV, {columns: true}).map(obj => obj.Domain)
+    const domPath = path.join(directory, region, '/')
 
-    fs.readdir(directory, async (err, fileNames) => {
+    fs.readdir(domPath, async (err, fileNames) => {
         if (err) {
             return
         }
+        const bar = new Progress('Checking trackers [:bar] :percent  :theFile', {width: 40, total: fileNames.length})
         for (const i in fileNames) {
             const name = fileNames[i]
-            const fileContent = await readFile(directory + name)
+            bar.tick({theFile: name})
+            const fileContent = await readFile(domPath + name)
             const domainName = fileContent.domain
             if (checkedDomains.includes(domainName)) {continue}
             const existingName = fileContent.owner && fileContent.owner.name ? fileContent.owner.name : ''
             const domainInfo = await fetchInfoForDomain(fileContent.domain)
             let entityChanged = 0
             let bestName = chooseName(domainInfo)
-            console.log(name)
+            //console.log(name)
             if (bestName) {
                 const shortName = shortNames.getDisplayName(bestName)
                 if (!existingName) {
@@ -248,7 +260,7 @@ async function checkTrackerFiles(directory) {
                     // check if name is an alias of existing entity. if it is,
                     // replace with entity name and no change for review
                     const existingDomainInfo = domainMap[domainName]
-                    if (existingDomainInfo.aliases.indexOf(bestName) !== -1) {
+                    if (existingDomainInfo && existingDomainInfo.aliases.indexOf(bestName) !== -1) {
                         bestName = existingDomainInfo.entityName
                     } else {
                         entityChanged = 1
@@ -258,7 +270,7 @@ async function checkTrackerFiles(directory) {
                 // only add domains with entity changes
                 if (entityChanged === 1) {
                     const row = `\n${domainName},${sanitizeCsvString(existingName)},${sanitizeCsvString(bestName)},${sanitizeCsvString(shortName)},0`
-                    fs.appendFileSync('./data/entityUpdates.csv', row, 'utf8')
+                    fs.appendFileSync(dataPath, row, 'utf8')
                 }
             }
         }
@@ -282,9 +294,10 @@ const sanitizeCsvString = name => {
  * Check tracker files for updates and write changes to ./data/entityUpdates.csv for review
  */
 async function update(directory) {
-    if (!fs.existsSync('./data/entityUpdates.csv')) {
+    const dataPath = path.join(__dirname, 'data', 'entityUpdates.csv')
+    if (!fs.existsSync(dataPath)) {
         const headers = 'domain,existingEntityName,newEntityName,displayName,acceptChange'
-        fs.writeFileSync('./data/entityUpdates.csv', headers, 'utf8')
+        fs.writeFileSync(dataPath, headers, 'utf8')
     } else {
         console.log('Found existing partial update, resuming where we left off')
     }

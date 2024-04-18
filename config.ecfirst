@@ -1,0 +1,24 @@
+{
+    "minSites": <SITE_COUNT>,
+    "trackerDataLoc": "/TrackerTesting/tracker-radar",
+    "surrogatesDataLoc": "/TrackerTesting/tracker-surrogates",
+    "crawlerDataLoc": "<RAW_DIR>",
+    "performanceDataLoc": "<RAW_DIR>",
+    "nameserverListLoc": "",
+    "crawlId": "",
+    "regionCode": "US",
+    "flags": {
+        "addSurrogates": true
+    },
+    "keepFirstParty": false,
+    "treatCnameAsFirstParty": false,
+    "parallelism": 100,
+    "verbose": false,
+    "cname_ignore_subdomains": ["", "www"],
+    "includePages": true,
+    "pageMapLoc": "<OUT_DIR>pagemaps",
+    "analyseScripts": ["SCRIPTS"],
+    "topExampleSites": [],
+    "includeExampleSites": "0",
+    "overrideFingerprintWeights": false
+}
