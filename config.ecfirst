@@ -18,7 +18,6 @@
     "includePages": true,
     "pageMapLoc": "<OUT_DIR>pagemaps",
     "analyseScripts": ["SCRIPTS"],
-    "topExampleSites": [],
     "includeExampleSites": "0",
     "overrideFingerprintWeights": false
 }
