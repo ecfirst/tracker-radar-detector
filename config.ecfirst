@@ -1,5 +1,5 @@
 {
-    "minSites": <SITE_COUNT>,
+    "minSites": 1,
     "trackerDataLoc": "/TrackerTesting/tracker-radar",
     "surrogatesDataLoc": "/TrackerTesting/tracker-surrogates",
     "crawlerDataLoc": "<RAW_DIR>",
