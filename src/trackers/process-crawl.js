@@ -17,7 +17,7 @@ let bar
 // @param {string, crawler file name}
 async function processSite(siteData) {
     // check that the crawl for this site finished and has data to process
-    if (!siteData.initialUrl || !(siteData.data.requests) { // && siteData.data.requests.length)) {
+    if (!siteData.initialUrl || !(siteData.data.requests)) { // && siteData.data.requests.length)) {
         crawl.stats.requestsSkipped += 1
         bar.tick()
         return
