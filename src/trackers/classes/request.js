@@ -41,7 +41,23 @@ class Request {
      */
     extractURLData(url) {
         this.url = url
-        this.data = new URL(url)
+        try { // catch URL protocol errors
+            this.data = new URL(url) 
+        } catch (e) {
+            if (e.message.includes('Invalid URL protocol')) {
+                console.warn(`Invalid URL protocol encountered: ${this.url}. SKIPPING`)
+                this.data = null
+                this.domain = null
+                this.host = null
+                this.path = null
+                this.owner = null
+                this.apis = {}
+                return // Skip processing this malformed URL
+            } else {
+                throw e // Bubble up unexpected issues
+            }
+        }
+
         this.domain = this.data.domain
         this.host = this.data.hostname
         this.path = this.path || this.data.path
