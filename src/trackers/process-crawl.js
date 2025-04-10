@@ -2,7 +2,21 @@
 const chalk = require('chalk')
 const Progress = require('progress')
 
-const sharedData = require('./helpers/sharedData.js')
+const fs = require('fs')
+const path = require('path')
+
+// Parse optional --config argument
+let configFileName = 'config.json'
+const configArgIndex = process.argv.indexOf('--config')
+if (configArgIndex !== -1 && process.argv[configArgIndex + 1]) {
+    configFileName = process.argv[configArgIndex + 1]
+}
+
+const configPath = path.resolve(__dirname, `./../../../${configFileName}`)
+const config = JSON.parse(fs.readFileSync(configPath, 'utf8'))
+const SharedData = require('./helpers/sharedData.js')
+const sharedData = new SharedData(config)
+
 const crawl = require('./classes/crawl.js')
 const Site = require('./classes/site.js')
 

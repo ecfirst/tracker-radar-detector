@@ -121,4 +121,4 @@ function _getJSON (path) {
     }
 }
 
-module.exports = new SharedData(config)
+module.exports = new SharedData
