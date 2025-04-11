@@ -16,9 +16,9 @@ class SharedData {
         this.surrogates = _getJSON(`${cfg.surrogatesDataLoc}/mapping.json`)
         this.domains = _getJSON(`${build}/generated/domain_summary.json`) || {}
         this.abuseScores = _getJSON(`${build}/generated/api_fingerprint_weights.json`)
-        this.categories = _getCategories()
+        this.categories = _getCategories(cfg)
         
-        const {domainToEntity, entityMap} = _readEntities(`${cfg.trackerDataLoc}/entities`)
+        const {domainToEntity, entityMap} = _readEntities(cfg)
         this.domainToEntity = domainToEntity
         this.entityMap = entityMap
 
@@ -42,9 +42,10 @@ class SharedData {
 }
 
 // map entity domains to name for easy lookup
-function _readEntities (path) {
+function _readEntities (cfg) {
     const domainToEntity = {}
     const entityMap = new Map()
+    const path = `${cfg.trackerDataLoc}/entities/`
 
     if (fs.existsSync(path)) {
         fs.readdirSync(`${config.trackerDataLoc}/entities/`).forEach(entityFile => {
@@ -64,17 +65,17 @@ function _readEntities (path) {
 }
 
 // option list of top example sites to include in tracker files
-function _getTopExampleSites () {
-    if (!config.topExampleSites || !fs.existsSync(config.topExampleSites)) {
+function _getTopExampleSites (cfg) {
+    if (!cfg.topExampleSites || !fs.existsSync(cfg.topExampleSites)) {
         return null
     }
-    return new Set(JSON.parse(fs.readFileSync(config.topExampleSites, 'utf8')))
+    return new Set(JSON.parse(fs.readFileSync(cfg.topExampleSites, 'utf8')))
 }
 
 // read tracker category data from csv and return object
-function _getCategories () {
+function _getCategories (cfg) {
     try {
-        return categoryHelper.getCategories(`${config.trackerDataLoc}/build-data/static/categorized_trackers.csv`)
+        return categoryHelper.getCategories(`${cfg.trackerDataLoc}/build-data/static/categorized_trackers.csv`)
     } catch (e) {
         console.warn('Could not load categories', e)
         return {}
