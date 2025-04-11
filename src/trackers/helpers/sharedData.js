@@ -1,7 +1,7 @@
 const fs = require('fs')
 const chalk = require('chalk')
 
-const config = require('./../../../config.json')
+// const config = require('./../../../config.json')
 const categoryHelper = require(`./getCategory.js`)
 const URL = require('./url.js')
 const NameServers = require('./nameserver.js')
