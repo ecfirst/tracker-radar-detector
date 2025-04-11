@@ -10,6 +10,10 @@ let configFileName = 'config.json'
 const configArgIndex = process.argv.indexOf('--config')
 if (configArgIndex !== -1 && process.argv[configArgIndex + 1]) {
     configFileName = process.argv[configArgIndex + 1]
+} else {
+    // Fallback: use first positional argument if it ends in .json
+    const positional = process.argv.find(arg => arg.endsWith('.json'))
+    if (positional) configFileName = positional
 }
 
 const configPath = path.resolve(__dirname, `./../../../${configFileName}`)
