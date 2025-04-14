@@ -316,7 +316,7 @@ function _writeSummaries (crawl, sharedData) {
 
     // commonRequests array is to big to be stringified in one shot, we have to chunk it
     const requestsArray = Object.values(crawl.commonRequests)
-    const CHUNK = 50000
+    const CHUNK = 40000
     const requestArrayLen = requestsArray.length
 
     // remove old chunks
