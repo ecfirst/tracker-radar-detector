@@ -6,8 +6,8 @@ const cname = require('./../helpers/cname.js')
 const {TLDTS_OPTIONS} = require('../helpers/const')
 
 class Tracker {
-        this.sharedData = sharedData;
     constructor(sharedData, trackerData, crawledSiteTotal) {
+        this.sharedData = sharedData
         this.domain = trackerData.host
         const entity = _getEntity(this.domain)
         this.owner = {name: entity.name, displayName: entity.displayName || entity.name} || {}
