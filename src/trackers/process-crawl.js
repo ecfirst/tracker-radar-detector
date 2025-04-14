@@ -75,8 +75,11 @@ async function processCrawl() {
             sitesQueue.push(processSite(siteData))
         }
         await Promise.allSettled(sitesQueue)
+        console.log("Exporting Entities")
         crawl.exportEntities()
+        console.log("Finalizing Requests")
         crawl.finalizeRequests()
+        console.log("Writting Summaries")
         crawl.writeSummaries()
         console.log(`${chalk.blue(crawl.stats.sites)} sites processed\n${chalk.blue(crawl.stats.requests)} requests processed\n${chalk.blue(crawl.stats.requestsSkipped)} requests skipped`)
     } finally {
