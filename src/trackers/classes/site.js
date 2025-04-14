@@ -3,7 +3,7 @@ const Request = require('./request.js')
 
 const URL = require('./../helpers/url.js')
 const cnameHelper = require('./../helpers/cname.js')
-const getOwner = require('./../helpers/getOwner.js')
+const getOwnerFactory = require('./../helpers/getOwner.js')
 const {TLDTS_OPTIONS} = require('../helpers/const')
 
 const {calculateCookieTtl,isSavedCookieSetterCall,parseCookie} = require('../helpers/cookies')
@@ -19,6 +19,9 @@ class Site {
         this.domain = url.domain
         this.subdomain = url.subdomain
 
+        this.getOwner = getOwnerFactory(sharedData)
+        this.owner = this.getOwner(this.domain)
+
         // unique 3p domains on this site with overall fingerprint score for each
         this.uniqueDomains = {}
 
@@ -30,7 +33,7 @@ class Site {
 
         this.requests = []
 
-        this.owner = getOwner(this.domain)
+        this.owner = this.getOwner(this.domain)
 
         this.isFirstParty = _isFirstParty.bind(this)
 
@@ -78,8 +81,8 @@ function _getCookies (siteData) {
  * @returns {bool} True if the url is in this sites first party set.
  */
 function _isFirstParty(url) {
-    const data = new URL(url)
-    const dataOwner = getOwner(data.domain)
+    const data = new this.sharedData.URL(url)
+    const dataOwner = this.getOwner(data.domain)
     if (data.domain === this.domain || ((dataOwner && this.owner) && dataOwner === this.owner)) {
         return true
     }
