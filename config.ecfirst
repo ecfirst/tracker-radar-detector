@@ -12,7 +12,7 @@
     },
     "keepFirstParty": false,
     "treatCnameAsFirstParty": false,
-    "parallelism": 100,
+    "parallelism": 1000,
     "verbose": false,
     "cname_ignore_subdomains": ["", "www"],
     "includePages": true,
