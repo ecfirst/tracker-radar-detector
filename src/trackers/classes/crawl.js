@@ -62,11 +62,11 @@ class Crawl {
     }
 
     writeSummaries () {
-        _writeSummaries(this)
+        _writeSummaries(this, this.sharedData)
     }
 
     async processSite (site) {
-        await _processSite(this, site)
+        await _processSite(this, site, this.sharedData)
     }
 
     finalizeRequests () {
@@ -89,9 +89,9 @@ class Crawl {
  * @param {string} entityName - entity file name to update
  * @param {string} domain - domain name to add to the entity properties list
  */
-function _updateEntityProperties (crawl, entityName, domain) {
+function _updateEntityProperties (crawl, entityName, domain, sharedData) {
     if (!(entityName in crawl.entityData)) {
-        const entityFile = path.join(this.sharedData.config.trackerDataLoc, 'entities', `${entityName}.json`)
+        const entityFile = path.join(sharedData.config.trackerDataLoc, 'entities', `${entityName}.json`)
 
         try {
             const data = fs.readFileSync(entityFile, 'utf8')
@@ -108,7 +108,7 @@ function _updateEntityProperties (crawl, entityName, domain) {
     }
 }
 
-async function _processSite (crawl, site) {
+async function _processSite (crawl, site, sharedData) {
     // go through the uniqueDomains found on the site and update the crawl domain prevalence, fingerprinting, and cookies
     Object.keys(site.uniqueDomains).forEach(domain => {
         crawl.domainPrevalence[domain] ? crawl.domainPrevalence[domain] += 1 : crawl.domainPrevalence[domain] = 1
@@ -150,15 +150,15 @@ async function _processSite (crawl, site) {
         }
 
         if (!site.isFirstParty(request.url)) {
-            const nameservers = await this.sharedData.nameservers.resolveNs(request.domain)
+            const nameservers = await sharedData.nameservers.resolveNs(request.domain)
     
             if (nameservers && nameservers.length) {
                 request.nameservers = nameservers
     
                 // The option to group by nameservers is set in the config
                 // All nameservers must match so we can do a quick check to see that the first nameserver exists in our data
-                if (this.sharedData.nameserverList && this.sharedData.nameserverToEntity[request.nameservers[0]]) {
-                    for (const nsEntry of this.sharedData.nameserverList) {
+                if (sharedData.nameserverList && sharedData.nameserverToEntity[request.nameservers[0]]) {
+                    for (const nsEntry of sharedData.nameserverList) {
                         const entityNS = new Set(nsEntry.nameservers)
 
                         // all nameservers in set must match
@@ -184,7 +184,7 @@ async function _processSite (crawl, site) {
     }
 
     // analyse per-site script fingerprinting
-    const analyseScripts = this.sharedData.config.analyseScripts || []
+    const analyseScripts = sharedData.config.analyseScripts || []
     for (const [script, apis] of Object.entries(site.siteData.data.apis.callStats)) {
         const scriptMatch = analyseScripts.find(r => script.match(r))
         if (scriptMatch === undefined) {
@@ -308,11 +308,11 @@ function _getEntitySummaries (crawl) {
 
 }
 
-function _writeSummaries (crawl) {
-    fs.writeFileSync(`${this.sharedData.config.trackerDataLoc}/build-data/generated/domain_summary.json`, JSON.stringify(_getDomainSummaries(crawl), null, 4))
-    fs.writeFileSync(`${this.sharedData.config.trackerDataLoc}/build-data/generated/data_by_site.json`, JSON.stringify(_getDataBySite(crawl), null, 4))
+function _writeSummaries (crawl, sharedData) {
+    fs.writeFileSync(`${sharedData.config.trackerDataLoc}/build-data/generated/domain_summary.json`, JSON.stringify(_getDomainSummaries(crawl), null, 4))
+    fs.writeFileSync(`${sharedData.config.trackerDataLoc}/build-data/generated/data_by_site.json`, JSON.stringify(_getDataBySite(crawl), null, 4))
 
-    fs.writeFileSync(`${this.sharedData.config.trackerDataLoc}/crawlStats.json`, JSON.stringify(crawl.stats, null, 4))
+    fs.writeFileSync(`${sharedData.config.trackerDataLoc}/crawlStats.json`, JSON.stringify(crawl.stats, null, 4))
 
     // commonRequests array is to big to be stringified in one shot, we have to chunk it
     const requestsArray = Object.values(crawl.commonRequests)
@@ -320,23 +320,23 @@ function _writeSummaries (crawl) {
     const requestArrayLen = requestsArray.length
 
     // remove old chunks
-    fs.readdirSync(`${this.sharedData.config.trackerDataLoc}/`).forEach(file => {
+    fs.readdirSync(`${sharedData.config.trackerDataLoc}/`).forEach(file => {
         if (file.startsWith('commonRequests-') && file.endsWith('.json')) {
-            fs.unlinkSync(path.join(this.sharedData.config.trackerDataLoc, file))
+            fs.unlinkSync(path.join(sharedData.config.trackerDataLoc, file))
         }
     })
 
     for (let i=0; i<requestArrayLen; i+=CHUNK) {
         const requestArrayChunk = requestsArray.slice(i, i+CHUNK)
-        fs.writeFileSync(`${this.sharedData.config.trackerDataLoc}/commonRequests-${i/CHUNK}.json`, JSON.stringify(requestArrayChunk, null, 4))
+        fs.writeFileSync(`${sharedData.config.trackerDataLoc}/commonRequests-${i/CHUNK}.json`, JSON.stringify(requestArrayChunk, null, 4))
     }
 
     _getEntitySummaries(crawl)
 
-    fs.writeFileSync(`${this.sharedData.config.trackerDataLoc}/build-data/generated/entity_prevalence.json`, JSON.stringify(crawl.entityPrevalence, null, 4))
+    fs.writeFileSync(`${sharedData.config.trackerDataLoc}/build-data/generated/entity_prevalence.json`, JSON.stringify(crawl.entityPrevalence, null, 4))
 
-    if (this.sharedData.config.includePages) {
-        fs.writeFileSync(`${this.sharedData.config.pageMapLoc}/pagemap.json`, JSON.stringify(crawl.pageMap, null, 4))
+    if (sharedData.config.includePages) {
+        fs.writeFileSync(`${sharedData.config.pageMapLoc}/pagemap.json`, JSON.stringify(crawl.pageMap, null, 4))
     }
 
     // write entity prevalence csv
@@ -346,20 +346,20 @@ function _writeSummaries (crawl) {
     }
 
     // write entity prevalence data to individual entity files
-    updateEntityPrevalence(crawl)
+    updateEntityPrevalence(crawl, sharedData)
 
     csv = csv.sort((a, b) => b[1] - a[1])
-    fs.writeFileSync(`${this.sharedData.config.trackerDataLoc}/build-data/generated/entity_prevalence.csv`, csv.reduce((str, row) => {str += `"${row[0]}",${row[1]},${row[2]},${row[3]}\n`; return str}, 'Entity,Total Prevalence,Tracking Prevalence,Non-tracking Prevalence\n'))
+    fs.writeFileSync(`${sharedData.config.trackerDataLoc}/build-data/generated/entity_prevalence.csv`, csv.reduce((str, row) => {str += `"${row[0]}",${row[1]},${row[2]},${row[3]}\n`; return str}, 'Entity,Total Prevalence,Tracking Prevalence,Non-tracking Prevalence\n'))
 
-    if (this.sharedData.config.overrideFingerprintWeights) {
-        fs.writeFileSync(`${this.sharedData.config.trackerDataLoc}/build-data/generated/api_fingerprint_weights.json`, JSON.stringify(getFingerprintWeights(crawl), null, 4))
+    if (sharedData.config.overrideFingerprintWeights) {
+        fs.writeFileSync(`${sharedData.config.trackerDataLoc}/build-data/generated/api_fingerprint_weights.json`, JSON.stringify(getFingerprintWeights(crawl), null, 4))
     }
 }
 
-function updateEntityPrevalence (crawl) {
-    const entities = fs.readdirSync(`${this.sharedData.config.trackerDataLoc}/entities`)
+function updateEntityPrevalence (crawl, sharedData) {
+    const entities = fs.readdirSync(`${sharedData.config.trackerDataLoc}/entities`)
     entities.forEach(file => {
-        const entityFilePath = `${this.sharedData.config.trackerDataLoc}/entities/${file}`
+        const entityFilePath = `${sharedData.config.trackerDataLoc}/entities/${file}`
         const entity = JSON.parse(fs.readFileSync(entityFilePath, 'utf8'))
         // look up entity prevalence data
         if (crawl.entityPrevalence[entity.name]) {

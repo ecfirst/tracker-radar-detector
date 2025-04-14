@@ -4,7 +4,7 @@
 
 const dns = require('dns').promises
 const URL = require('./url.js')
-const shared = require('./sharedData.js')
+
 
 
 const cache = {}
@@ -72,9 +72,9 @@ class CNAME {
      * @param {ParsedURL} url - a ParsedURL object.
      * @returns {boolean} true if subdomain is in the ignore list.
      */
-    static isSubdomainExcluded(url) {
-        if (shared.config.cname_ignore_subdomains) {
-            for (const subdomain of shared.config.cname_ignore_subdomains) {
+    static isSubdomainExcluded(url, sharedData) {
+        if (sharedData.config.cname_ignore_subdomains) {
+            for (const subdomain of sharedData.config.cname_ignore_subdomains) {
                 if (url.subdomain === subdomain) {
                     return true
                 }

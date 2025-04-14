@@ -12,6 +12,7 @@ class Site {
     constructor (siteData, sharedData) {
         this.siteData = siteData
         this.shared = sharedData
+        this.sharedData = sharedData
 
         const url = new this.sharedData.URL(siteData.initialUrl)
         this.host = url.hostname
@@ -55,7 +56,7 @@ class Site {
     }
 
     async processRequest (requestData) {
-        await _processRequest(requestData, this)
+        await _processRequest(requestData, this, this.sharedData)
     }
 
 }
@@ -145,14 +146,14 @@ function isRootSite(request, site) {
  *  @param {Object} requestData - The raw request data
  *  @param {Site} site - the current site object
  */
-async function _processRequest (requestData, site) {
+async function _processRequest (requestData, site, sharedData) {
     const request = new Request(requestData, site)
 
     // If this request is a subdomain of the site, see if it is cnamed
     if (site.isFirstParty(request.url) &&
-        !this.sharedData.config.treatCnameAsFirstParty &&
+        !sharedData.config.treatCnameAsFirstParty &&
         !isRootSite(request, site) &&
-        !cnameHelper.isSubdomainExcluded(request.data)
+        !cnameHelper.isSubdomainExcluded(request.data, sharedData)
     ) {
         const cnames = await cnameHelper.resolveCname(request.url)
         if (cnames) {
@@ -172,7 +173,7 @@ async function _processRequest (requestData, site) {
     }
    
 
-    if (site.isFirstParty(request.url) && !this.sharedData.config.keepFirstParty) {
+    if (site.isFirstParty(request.url) && !sharedData.config.keepFirstParty) {
         return
     }
 

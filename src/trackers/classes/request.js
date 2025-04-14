@@ -16,7 +16,7 @@ class Request {
         this.headers = reqData.responseHeaders || {}
         this.setsCookies = _setsCookies(this)
         this.isTracking = false
-        this.fingerprintScore = _getFPScore(Object.keys(this.apis))
+        this.fingerprintScore = _getFPScore(Object.keys(this.apis), sharedData)
         // if this request uses a third party CNAME, keep data here
         this.wasCNAME = false
         this.originalSubdomain = undefined
@@ -65,12 +65,11 @@ class Request {
     }
 }
 
-function _getFPScore (apis) {
+function _getFPScore (apis, sharedData) {
     if (!apis.length) {return 0}
 
     return apis.reduce((totalFP, api) => {
-        const shared = this.sharedData;
-        totalFP += shared.abuseScores[api] || 1
+        totalFP += sharedData.abuseScores[api] || 1
         return totalFP
     },0)
 }
