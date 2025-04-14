@@ -26,6 +26,10 @@ class SharedData {
         this.domainToEntity = domainToEntity
         this.entityMap = entityMap
 
+        const getOwnerFactory = require('./getOwner.js')
+        this.getOwner = getOwnerFactory(this)
+
+
         this.breaking = _getBreaking(`${build}/static/breaking`)
         this.topExampleSitesSet = _getTopExampleSites(cfg)
         this.nameservers = NameServers
