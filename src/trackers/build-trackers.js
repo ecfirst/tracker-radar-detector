@@ -103,7 +103,7 @@ for (const [fileName, tracker] of Object.entries(trackers)) {
 }
 
 if (sharedData.config.includePages) {
-    fs.writeFileSync(`${haredData.config.pageMapLoc}/trackerpagemap.json`, JSON.stringify(trackerPageMap, null, 4))
+    fs.writeFileSync(`${sharedData.config.pageMapLoc}/trackerpagemap.json`, JSON.stringify(trackerPageMap, null, 4))
 }
 
 console.log(`Found ${summary.trackers} ${chalk.green("trackers")}`)
