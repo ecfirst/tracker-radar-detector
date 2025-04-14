@@ -1,6 +1,6 @@
 const tldts = require('tldts-experimental')
 const Request = require('./request.js')
-// const shared = require('./../helpers/sharedData.js')
+// const shared = require('./../helpers/this.sharedData.js')
 const URL = require('./../helpers/url.js')
 const cnameHelper = require('./../helpers/cname.js')
 const getOwner = require('./../helpers/getOwner.js')
@@ -13,7 +13,7 @@ class Site {
         this.siteData = siteData
         this.shared = sharedData
 
-        const url = new URL(siteData.initialUrl)
+        const url = new this.sharedData.URL(siteData.initialUrl)
         this.host = url.hostname
         this.domain = url.domain
         this.subdomain = url.subdomain

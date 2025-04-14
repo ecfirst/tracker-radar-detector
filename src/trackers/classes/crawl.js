@@ -2,9 +2,9 @@
 const fs = require('fs')
 const path = require('path')
 const {median, std} = require('mathjs')
-// const shared = require('./../helpers/sharedData.js')
+// const shared = require('./../helpers/this.sharedData.js')
 const CommonRequest = require('./commonRequest.js')
-// const sharedData = require('./../helpers/sharedData.js')
+// 
 const {getFingerprintWeights} = require('./../helpers/fingerprints.js')
 
 const API_COUNT_THRESHOLD = 15
@@ -336,7 +336,7 @@ function _writeSummaries (crawl) {
     fs.writeFileSync(`${shared.config.trackerDataLoc}/build-data/generated/entity_prevalence.json`, JSON.stringify(crawl.entityPrevalence, null, 4))
 
     if (shared.config.includePages) {
-        fs.writeFileSync(`${sharedData.config.pageMapLoc}/pagemap.json`, JSON.stringify(crawl.pageMap, null, 4))
+        fs.writeFileSync(`${this.sharedData.config.pageMapLoc}/pagemap.json`, JSON.stringify(crawl.pageMap, null, 4))
     }
 
     // write entity prevalence csv

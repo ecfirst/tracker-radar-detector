@@ -1,6 +1,6 @@
 const cname = require('./../helpers/cname.js')
 const {getExampleSites} = require('./../helpers/getExampleSites.js')
-const sharedData = require('./../helpers/sharedData.js')
+
 
 class CommonRequest {
     constructor (request, site) {
@@ -134,7 +134,7 @@ function _finalize (request, totalSites, cookieSentThreshold = 0.01) {
 
     delete request.fpPerSite
 
-    request.exampleSites = getExampleSites([...request.pages], sharedData.config.includeExampleSites)
+    request.exampleSites = getExampleSites([...request.pages], this.sharedData.config.includeExampleSites)
     delete request.pages
 
     Object.values(request.firstPartyCookies).forEach(cookie => {

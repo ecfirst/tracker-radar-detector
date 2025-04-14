@@ -1,12 +1,13 @@
 const tldts = require('tldts-experimental')
 const performanceHelper = require('./../helpers/getPerformance.js')
-const sharedData = require('./../helpers/sharedData.js')
+
 const {getFingerprintRank} = require('./../helpers/fingerprints.js')
 const cname = require('./../helpers/cname.js')
 const {TLDTS_OPTIONS} = require('../helpers/const')
 
 class Tracker {
-    constructor(trackerData, crawledSiteTotal) {
+        this.sharedData = sharedData;
+    constructor(sharedData, trackerData, crawledSiteTotal) {
         this.domain = trackerData.host
         const entity = _getEntity(this.domain)
         this.owner = {name: entity.name, displayName: entity.displayName || entity.name} || {}
@@ -18,12 +19,12 @@ class Tracker {
         this.subdomains = []
         this.cnames = []
 
-        this.fingerprinting = getFingerprintRank(sharedData.domains[this.domain].fp || 0)
+        this.fingerprinting = getFingerprintRank(this.sharedData.domains[this.domain].fp || 0)
         this.resources = []
         this.categories = _getCategories(this.domain) || []
-        this.performance = performanceHelper.getPerformance(this.domain, sharedData.config.performanceDataLoc) || {}
+        this.performance = performanceHelper.getPerformance(this.domain, this.sharedData.config.performanceDataLoc) || {}
         this.cookies = +(_getCookies(this.domain).toPrecision(3))
-        this.topInitiators = sharedData.domains[this.domain].topInitiators
+        this.topInitiators = this.sharedData.domains[this.domain].topInitiators
 
         const policy = _getPolicy(this.domain, this.owner)
         
@@ -35,7 +36,7 @@ class Tracker {
         const breaking = _getBreaking(this.domain)
         if (breaking) {this.breaking = breaking}
 
-        if (sharedData.config.flags.addSurrogates) {
+        if (this.sharedData.config.flags.addSurrogates) {
             this.addSurrogates()
         }
 
@@ -80,10 +81,10 @@ class Tracker {
 }
 
 function _getPolicy (domain, owner={}) {
-    if (sharedData.policies[domain]) {
-        return sharedData.policies[domain].privacyPolicy
-    } else if (owner.name && sharedData.policies[owner.name]) {
-        return sharedData.policies[owner.name].privacyPolicy
+    if (this.sharedData.policies[domain]) {
+        return this.sharedData.policies[domain].privacyPolicy
+    } else if (owner.name && this.sharedData.policies[owner.name]) {
+        return this.sharedData.policies[owner.name].privacyPolicy
     }
 }
 
@@ -92,8 +93,8 @@ function _getEntity (domain) {
         return {}
     }
 
-    if (sharedData.domainToEntity[domain]) {
-        return sharedData.domainToEntity[domain]
+    if (this.sharedData.domainToEntity[domain]) {
+        return this.sharedData.domainToEntity[domain]
     }
 
     const parts = domain.split('.')
@@ -106,9 +107,9 @@ function _getCategories (domain) {
         return []
     }
 
-    if (sharedData.categories[domain]) {
-        return Object.keys(sharedData.categories[domain]).reduce((cats, key) => {
-            if (sharedData.categories[domain][key]) {cats.push(key)}
+    if (this.sharedData.categories[domain]) {
+        return Object.keys(this.sharedData.categories[domain]).reduce((cats, key) => {
+            if (this.sharedData.categories[domain][key]) {cats.push(key)}
             return cats
         },[])
     }
@@ -119,18 +120,18 @@ function _getCategories (domain) {
 }
 
 function _getPrevalence (domain) {
-    return sharedData.domains[domain].prevalence || 0
+    return this.sharedData.domains[domain].prevalence || 0
 }
 
 function _getCookies (domain) {
-    return sharedData.domains[domain].cookies || 0
+    return this.sharedData.domains[domain].cookies || 0
 }
 
 function _getSurrogates (domain) {
     const trackerSurrogates = []
 
-    if (sharedData.surrogates[domain]) {
-        for (const surrogate of sharedData.surrogates[domain]) {
+    if (this.sharedData.surrogates[domain]) {
+        for (const surrogate of this.sharedData.surrogates[domain]) {
             trackerSurrogates.push({rule: surrogate.regexRule, replaceWith: surrogate.surrogate})
         }
     }
@@ -142,9 +143,9 @@ function _getSurrogates (domain) {
 
 // Look up and add request breakage data for this domian
 function _getBreaking (domain) {
-    if (sharedData.breaking) {
+    if (this.sharedData.breaking) {
         const breaking = []
-        for (const [type, data] of Object.entries(sharedData.breaking)) {
+        for (const [type, data] of Object.entries(this.sharedData.breaking)) {
             // only look at request type breaking data
             if (type.match('breaking-request')) {
                 if (data[domain]) {

@@ -1,4 +1,4 @@
-const shared = require('./../helpers/sharedData.js')
+const shared = require('./../helpers/this.sharedData.js')
 const URL = require('./../helpers/url.js')
 const getOwner = require('./../helpers/getOwner.js')
 const {isFirstPartyCookie,isCookieValueInUrl} = require('./../helpers/cookies')
