@@ -39,7 +39,7 @@ class CommonRequest {
     }
 
     finalize (totalSites) {
-        _finalize(this, totalSites, this.sharedData)
+        _finalize(this, totalSites, 0.01, this.sharedData)
     }
 
     _processFirstPartyCookiesForRequest(request) {
