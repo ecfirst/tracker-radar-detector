@@ -150,7 +150,7 @@ function isRootSite(request, site) {
  *  @param {Site} site - the current site object
  */
 async function _processRequest (requestData, site, sharedData) {
-    const request = new Request(requestData, site)
+    const request = new Request(requestData, site, sharedData)
 
     // If this request is a subdomain of the site, see if it is cnamed
     if (site.isFirstParty(request.url) &&
