@@ -4,7 +4,7 @@ const chalk = require('chalk')
 // const config = require('./../../../config.json')
 const categoryHelper = require(`./getCategory.js`)
 const createParsedURLClass = require('./url.js')
-const URL = createParsedURLClass(cfg)
+
 const NameServers = require('./nameserver.js')
 
 class SharedData {
@@ -13,6 +13,9 @@ class SharedData {
         const build = `${cfg.trackerDataLoc}/build-data`
 
         this.config = cfg
+        const URL = createParsedURLClass(cfg)
+
+        this.URL = URL
         this.policies = _getJSON(`${build}/static/privacy_policies.json`)
         this.surrogates = _getJSON(`${cfg.surrogatesDataLoc}/mapping.json`)
         this.domains = _getJSON(`${build}/generated/domain_summary.json`) || {}
