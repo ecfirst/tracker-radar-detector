@@ -2,15 +2,17 @@
 const fs = require('fs')
 const path = require('path')
 const {median, std} = require('mathjs')
-const shared = require('./../helpers/sharedData.js')
+// const shared = require('./../helpers/sharedData.js')
 const CommonRequest = require('./commonRequest.js')
-const sharedData = require('./../helpers/sharedData.js')
+// const sharedData = require('./../helpers/sharedData.js')
 const {getFingerprintWeights} = require('./../helpers/fingerprints.js')
 
 const API_COUNT_THRESHOLD = 15
 
 class Crawl {
-    constructor () {
+    constructor (sharedData) {
+        this.sharedData = sharedData
+        this.shared = sharedData
         this.stats = {
             sites: 0,
             requests: 0,
@@ -375,4 +377,4 @@ function updateEntityPrevalence (crawl) {
     })
 }
 
-module.exports = new Crawl()
+module.exports = Crawl

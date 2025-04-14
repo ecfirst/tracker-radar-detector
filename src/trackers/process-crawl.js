@@ -21,7 +21,9 @@ const config = JSON.parse(fs.readFileSync(configPath, 'utf8'))
 const SharedData = require('./helpers/sharedData.js')
 const sharedData = new SharedData(config)
 
-const crawl = require('./classes/crawl.js')
+const Crawl = require('./classes/crawl.js')
+const crawl = new Crawl(sharedData)
+
 const Site = require('./classes/site.js')
 
 const {JSONFileDataReader, PostgresDataReader} = require('./helpers/readers')
@@ -41,7 +43,7 @@ async function processSite(siteData) {
         return
     }
 
-    const site = new Site(siteData)
+    const site = new Site(siteData, sharedData)
 
     for (const request of siteData.data.requests) {
         await site.processRequest(request)

@@ -1,6 +1,6 @@
 const tldts = require('tldts-experimental')
 const Request = require('./request.js')
-const shared = require('./../helpers/sharedData.js')
+// const shared = require('./../helpers/sharedData.js')
 const URL = require('./../helpers/url.js')
 const cnameHelper = require('./../helpers/cname.js')
 const getOwner = require('./../helpers/getOwner.js')
@@ -9,8 +9,9 @@ const {TLDTS_OPTIONS} = require('../helpers/const')
 const {calculateCookieTtl,isSavedCookieSetterCall,parseCookie} = require('../helpers/cookies')
 
 class Site {
-    constructor (siteData) {
+    constructor (siteData, sharedData) {
         this.siteData = siteData
+        this.shared = sharedData
 
         const url = new URL(siteData.initialUrl)
         this.host = url.hostname
