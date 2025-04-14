@@ -328,7 +328,8 @@ function _writeSummaries (crawl, sharedData) {
 
     for (let i=0; i<requestArrayLen; i+=CHUNK) {
         const requestArrayChunk = requestsArray.slice(i, i+CHUNK)
-        fs.writeFileSync(`${sharedData.config.trackerDataLoc}/commonRequests-${i/CHUNK}.json`, JSON.stringify(requestArrayChunk, null, 4))
+        console.log(`Working chunk: ${i}`)
+        fs.writeFileSync(`${shared.config.trackerDataLoc}/commonRequests-${i/CHUNK}.json`, JSON.stringify(requestArrayChunk, null, 4))
     }
 
     _getEntitySummaries(crawl)
