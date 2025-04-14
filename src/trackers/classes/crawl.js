@@ -177,7 +177,7 @@ async function _processSite (crawl, site, sharedData) {
         const key = _getCommonRequestKey(request)
 
         if (!crawl.commonRequests[key]) {
-            crawl.commonRequests[key] = new CommonRequest(request, site)
+            crawl.commonRequests[key] = new CommonRequest(request, site, sharedData)
         } else {
             crawl.commonRequests[key].update(request, site)
         }
