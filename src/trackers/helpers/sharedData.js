@@ -52,8 +52,8 @@ function _readEntities (cfg) {
     const path = `${cfg.trackerDataLoc}/entities/`
 
     if (fs.existsSync(path)) {
-        fs.readdirSync(`${config.trackerDataLoc}/entities/`).forEach(entityFile => {
-            const entityData = _getJSON(`${config.trackerDataLoc}/entities/${entityFile}`)
+        fs.readdirSync(`${cfg.trackerDataLoc}/entities/`).forEach(entityFile => {
+            const entityData = _getJSON(`${cfg.trackerDataLoc}/entities/${entityFile}`)
 
             entityData.properties.forEach(url => {
                 domainToEntity[url] = entityData
