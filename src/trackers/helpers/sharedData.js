@@ -3,7 +3,8 @@ const chalk = require('chalk')
 
 // const config = require('./../../../config.json')
 const categoryHelper = require(`./getCategory.js`)
-const URL = require('./url.js')
+const createParsedURLClass = require('./url.js')
+const URL = createParsedURLClass(cfg)
 const NameServers = require('./nameserver.js')
 
 class SharedData {
