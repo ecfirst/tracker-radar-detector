@@ -1,6 +1,6 @@
 const tldts = require('tldts-experimental')
 const Request = require('./request.js')
-// const shared = require('./../helpers/this.sharedData.js')
+
 const URL = require('./../helpers/url.js')
 const cnameHelper = require('./../helpers/cname.js')
 const getOwner = require('./../helpers/getOwner.js')
@@ -150,7 +150,7 @@ async function _processRequest (requestData, site) {
 
     // If this request is a subdomain of the site, see if it is cnamed
     if (site.isFirstParty(request.url) &&
-        !shared.config.treatCnameAsFirstParty &&
+        !this.sharedData.config.treatCnameAsFirstParty &&
         !isRootSite(request, site) &&
         !cnameHelper.isSubdomainExcluded(request.data)
     ) {
@@ -172,7 +172,7 @@ async function _processRequest (requestData, site) {
     }
    
 
-    if (site.isFirstParty(request.url) && !shared.config.keepFirstParty) {
+    if (site.isFirstParty(request.url) && !this.sharedData.config.keepFirstParty) {
         return
     }
 

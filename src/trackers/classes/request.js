@@ -1,4 +1,4 @@
-const shared = require('./../helpers/this.sharedData.js')
+
 const URL = require('./../helpers/url.js')
 const getOwner = require('./../helpers/getOwner.js')
 const {isFirstPartyCookie,isCookieValueInUrl} = require('./../helpers/cookies')
@@ -8,7 +8,8 @@ const {TLDTS_OPTIONS} = require('../helpers/const')
 const COOKIE_LENGTH_CUTOFF = 5
 
 class Request {
-    constructor (reqData, site) {
+    constructor (reqData, site, sharedData) {
+        this.sharedData = sharedData
         this.site = site
         this.extractURLData(reqData.url)
         this.type = reqData.type
@@ -68,6 +69,7 @@ function _getFPScore (apis) {
     if (!apis.length) {return 0}
 
     return apis.reduce((totalFP, api) => {
+        const shared = this.sharedData;
         totalFP += shared.abuseScores[api] || 1
         return totalFP
     },0)
