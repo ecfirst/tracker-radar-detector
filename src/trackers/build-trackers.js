@@ -11,7 +11,7 @@ if (configArgIndex !== -1 && process.argv[configArgIndex + 1]) {
     configFileName = process.argv[configArgIndex + 1]
 }
 
-const configPath = path.resolve(__dirname, `./../../../${configFileName}`)
+const configPath = path.resolve(__dirname, `./../../${configFileName}`)
 const config = JSON.parse(fs.readFileSync(configPath, 'utf8'))
 const SharedData = require('./helpers/this.sharedData.js')
 const sharedData = new SharedData(config)
