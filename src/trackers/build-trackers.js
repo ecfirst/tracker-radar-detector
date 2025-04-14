@@ -1,7 +1,25 @@
 #!/usr/bin/env node
 const fs = require('fs')
 const chalk = require('chalk')
-const sharedData = require('./helpers/sharedData.js')
+
+const path = require('path')
+
+// Parse optional --config argument
+let configFileName = 'config.json'
+const configArgIndex = process.argv.indexOf('--config')
+if (configArgIndex !== -1 && process.argv[configArgIndex + 1]) {
+    configFileName = process.argv[configArgIndex + 1]
+} else {
+    // Fallback: use first positional argument if it ends in .json
+    const positional = process.argv.find(arg => arg.endsWith('.json'))
+    if (positional) configFileName = positional
+}
+
+const configPath = path.resolve(__dirname, `./../../${configFileName}`)
+const config = JSON.parse(fs.readFileSync(configPath, 'utf8'))
+const SharedData = require('./helpers/sharedData.js')
+const sharedData = new SharedData(config)
+
 const Progress = require('progress')
 
 const newDataStats = JSON.parse(fs.readFileSync(`${sharedData.config.trackerDataLoc}/crawlStats.json`, 'utf8'))
@@ -47,7 +65,7 @@ requestsArray.forEach(newTrackerData => {
 
     // create a new tracker file
     if (!trackers[fileName]) {
-        log(`${chalk.yellow('Create tracker:')} ${newTrackerData.rule} - ${newTrackerData.type} ${fileName}`)
+        log(`${chalk.yellow('Create tracker:')} ${newTrackerData.rule} - ${newTrackerData.type} ${fileName}`, sharedData)
         const tracker = new Tracker(newTrackerData, crawledSiteTotal)
         tracker.addRule(rule)
         tracker.addTypes(newTrackerData.type, newTrackerData.sites)
@@ -60,7 +78,7 @@ requestsArray.forEach(newTrackerData => {
             trackerPageMap[tracker.domain] = [...requestPageMap[rule.rule]]
         }
     } else {
-        log(`${chalk.blue('update tracker')} ${fileName}`)
+        log(`${chalk.blue('update tracker')} ${fileName}`, sharedData)
         trackers[fileName].addRule(rule)
         trackers[fileName].addTypes(newTrackerData.type, newTrackerData.sites)
         if (sharedData.config.includePages) {
@@ -98,7 +116,7 @@ if (!fs.existsSync(`${sharedData.config.trackerDataLoc}/build-data/generated/${c
 
 fs.writeFileSync(`${sharedData.config.trackerDataLoc}/build-data/generated/${countryCode}/releasestats.txt`, `${summary.trackers} domains\n${summary.entities.length} entities`)
 
-function log (msg) {
+function log (msg, sharedData) {
     if (sharedData.config.verbose) {
         console.log(msg)
     }

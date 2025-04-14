@@ -1,10 +1,11 @@
 const cname = require('./../helpers/cname.js')
 const {getExampleSites} = require('./../helpers/getExampleSites.js')
-const sharedData = require('./../helpers/sharedData.js')
+
 
 class CommonRequest {
-    constructor (request, site) {
+    constructor (request, site, sharedData) {
         this.host = request.domain
+        this.sharedData = sharedData
         this.rule = _escapeUrl(request)
         this.sites = 1
         this.pages = new Set().add(site.domain)
@@ -38,7 +39,7 @@ class CommonRequest {
     }
 
     finalize (totalSites) {
-        _finalize(this, totalSites)
+        _finalize(this, totalSites, 0.01, this.sharedData)
     }
 
     _processFirstPartyCookiesForRequest(request) {
@@ -120,7 +121,7 @@ function _combineApis (currApis, newApis) {
     return currApis
 }
 
-function _finalize (request, totalSites, cookieSentThreshold = 0.01) {
+function _finalize (request, totalSites, cookieSentThreshold = 0.01, sharedData) {
     // calclate the percent of sites the request is found on and percent of sites it sets cookies on
     request.cookies = Number(request.cookiesOn / totalSites)
     request.prevalence = Number(request.sites / totalSites)

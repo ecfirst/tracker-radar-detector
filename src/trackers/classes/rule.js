@@ -1,5 +1,5 @@
 const {getFingerprintRank} = require('./../helpers/fingerprints.js')
-const sharedData = require('./../helpers/sharedData.js')
+
 
 class Rule {
     constructor (newRuleData, totalSites) {
@@ -18,7 +18,7 @@ class Rule {
         this.firstPartyCookies = newRuleData.firstPartyCookies
         this.firstPartyCookiesSent = newRuleData.firstPartyCookiesSent
 
-        if (sharedData.config.includeExampleSites) {
+        if (this.sharedData.config.includeExampleSites) {
             this.exampleSites = newRuleData.exampleSites
         }
     }

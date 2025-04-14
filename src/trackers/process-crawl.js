@@ -2,8 +2,28 @@
 const chalk = require('chalk')
 const Progress = require('progress')
 
-const sharedData = require('./helpers/sharedData.js')
-const crawl = require('./classes/crawl.js')
+const fs = require('fs')
+const path = require('path')
+
+// Parse optional --config argument
+let configFileName = 'config.json'
+const configArgIndex = process.argv.indexOf('--config')
+if (configArgIndex !== -1 && process.argv[configArgIndex + 1]) {
+    configFileName = process.argv[configArgIndex + 1]
+} else {
+    // Fallback: use first positional argument if it ends in .json
+    const positional = process.argv.find(arg => arg.endsWith('.json'))
+    if (positional) configFileName = positional
+}
+
+const configPath = path.resolve(__dirname, `./../../${configFileName}`)
+const config = JSON.parse(fs.readFileSync(configPath, 'utf8'))
+const SharedData = require('./helpers/sharedData.js')
+const sharedData = new SharedData(config)
+
+const Crawl = require('./classes/crawl.js')
+const crawl = new Crawl(sharedData)
+
 const Site = require('./classes/site.js')
 
 const {JSONFileDataReader, PostgresDataReader} = require('./helpers/readers')
@@ -23,7 +43,7 @@ async function processSite(siteData) {
         return
     }
 
-    const site = new Site(siteData)
+    const site = new Site(siteData, sharedData)
 
     for (const request of siteData.data.requests) {
         await site.processRequest(request)

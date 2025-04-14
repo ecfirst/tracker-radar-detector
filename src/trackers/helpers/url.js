@@ -1,78 +1,64 @@
-const {URL} = require('@cliqz/url-parser')
+const { URL } = require('@cliqz/url-parser')
 const fs = require('fs')
-const {parse} = require('tldts-experimental')
-const {TLDTS_OPTIONS} = require('./const')
-const config = require('./../../../config.json')
-const pslExtras = config.pslExtras ? JSON.parse(fs.readFileSync(config.pslExtras, 'utf8')) : {}
+const { parse } = require('tldts-experimental')
+const { TLDTS_OPTIONS } = require('./const')
 
-class ParsedURL extends URL {
+// Export a function that takes config and returns a customized ParsedURL class
+module.exports = function createParsedURLClass(config) {
+    const pslExtras = config.pslExtras && fs.existsSync(config.pslExtras)
+        ? JSON.parse(fs.readFileSync(config.pslExtras, 'utf8'))
+        : {}
 
-    constructor(url) {
-        if (url.startsWith('blob:')) {
-            url = url.replace(/^blob:/, '')
+    class ParsedURL extends URL {
+        constructor(url) {
+            if (url.startsWith('blob:')) {
+                url = url.replace(/^blob:/, '')
+            }
+            super(url)
         }
-        super(url)
-    }
 
-    get domainInfo() {
-        // extend domainInfo to use PSL
-        if (!this._domainInfo) {
-            this._domainInfo = parse(this.hostname, {
-                extractHostname: false,
-                ...TLDTS_OPTIONS
-            })
-
-            if (!this._domainInfo.isPrivate && pslExtras && pslExtras.privatePSL) {
-                // get list of possible suffix matches, we can have multiple matches for a single request
-                // a.example.com and b.a.example.com for a request from 123.b.a.example.com
-                // check that suffix is preceded by a dot or is at the beginning of the hostname
-                const suffixMatches = pslExtras.privatePSL.filter(suffix => {
-                    const escapedSuffix = suffix.replace('.', '\\.')
-                    const regex = new RegExp(`(^|\\.)${escapedSuffix}$`)
-                    return regex.test(this._domainInfo.hostname)
+        get domainInfo() {
+            if (!this._domainInfo) {
+                this._domainInfo = parse(this.hostname, {
+                    extractHostname: false,
+                    ...TLDTS_OPTIONS
                 })
 
-                // reformat domainInfo to make this request look like a private domain
-                if (suffixMatches && suffixMatches.length) {
-
-                    // use most specific suffix match (longest)
-                    const suffix = suffixMatches.reduce((l,s) => {
-                        return l.length >= s.length ? l : s
+                if (!this._domainInfo.isPrivate && pslExtras && pslExtras.privatePSL) {
+                    const suffixMatches = pslExtras.privatePSL.filter(suffix => {
+                        const escapedSuffix = suffix.replace('.', '\\.')
+                        const regex = new RegExp(`(^|\\.)${escapedSuffix}$`)
+                        return regex.test(this._domainInfo.hostname)
                     })
 
-                    // Array of subdomain after removing suffix from hostname
-                    const splitSubdomain = this._domainInfo.hostname.replace(new RegExp(`\\.?${suffix}$`), '').split('.')
-                    const domainWithoutSuffix = splitSubdomain.pop()
+                    if (suffixMatches && suffixMatches.length) {
+                        const suffix = suffixMatches.reduce((l, s) => l.length >= s.length ? l : s)
+                        const splitSubdomain = this._domainInfo.hostname.replace(new RegExp(`\\.?${suffix}$`), '').split('.')
+                        const domainWithoutSuffix = splitSubdomain.pop()
 
-                    this._domainInfo.publicSuffix = suffix
-                    this._domainInfo.domain = domainWithoutSuffix ? `${domainWithoutSuffix}.${suffix}` : suffix
-                    this._domainInfo.domainWithoutSuffix = domainWithoutSuffix
-                    this._domainInfo.subdomain = splitSubdomain.join('.')
-                    this._domainInfo.isPrivate = true
+                        this._domainInfo.publicSuffix = suffix
+                        this._domainInfo.domain = domainWithoutSuffix ? `${domainWithoutSuffix}.${suffix}` : suffix
+                        this._domainInfo.domainWithoutSuffix = domainWithoutSuffix
+                        this._domainInfo.subdomain = splitSubdomain.join('.')
+                        this._domainInfo.isPrivate = true
+                    }
                 }
             }
+            return this._domainInfo
         }
-        return this._domainInfo
+
+        get domain() {
+            return this.domainInfo.isIp ? this.hostname : this.domainInfo.domain
+        }
+
+        get subdomain() {
+            return this.domainInfo.subdomain
+        }
+
+        get path() {
+            return this.pathname.split(';')[0]
+        }
     }
 
-    /**
-     * The eTLD+1 of this URL's hostname, or the IP address if the hostname is an IP
-     */
-    get domain() {
-        return this.domainInfo.isIp ? this.hostname : this.domainInfo.domain
-    }
-
-    get subdomain() {
-        return this.domainInfo.subdomain
-    }
-
-    /**
-     * Cut any parameter string from the URL path
-     */
-    get path() {
-        const pathname = this.pathname
-        return pathname.split(';')[0]
-    }
+    return ParsedURL
 }
-
-module.exports = ParsedURL

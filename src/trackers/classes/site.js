@@ -1,21 +1,26 @@
 const tldts = require('tldts-experimental')
 const Request = require('./request.js')
-const shared = require('./../helpers/sharedData.js')
+
 const URL = require('./../helpers/url.js')
 const cnameHelper = require('./../helpers/cname.js')
-const getOwner = require('./../helpers/getOwner.js')
+const getOwnerFactory = require('./../helpers/getOwner.js')
 const {TLDTS_OPTIONS} = require('../helpers/const')
 
 const {calculateCookieTtl,isSavedCookieSetterCall,parseCookie} = require('../helpers/cookies')
 
 class Site {
-    constructor (siteData) {
+    constructor (siteData, sharedData) {
         this.siteData = siteData
+        this.shared = sharedData
+        this.sharedData = sharedData
 
-        const url = new URL(siteData.initialUrl)
+        const url = new this.sharedData.URL(siteData.initialUrl)
         this.host = url.hostname
         this.domain = url.domain
         this.subdomain = url.subdomain
+
+        this.getOwner = getOwnerFactory(sharedData)
+        this.owner = this.getOwner(this.domain)
 
         // unique 3p domains on this site with overall fingerprint score for each
         this.uniqueDomains = {}
@@ -28,7 +33,7 @@ class Site {
 
         this.requests = []
 
-        this.owner = getOwner(this.domain)
+        this.owner = this.getOwner(this.domain)
 
         this.isFirstParty = _isFirstParty.bind(this)
 
@@ -54,7 +59,7 @@ class Site {
     }
 
     async processRequest (requestData) {
-        await _processRequest(requestData, this)
+        await _processRequest(requestData, this, this.sharedData)
     }
 
 }
@@ -76,8 +81,8 @@ function _getCookies (siteData) {
  * @returns {bool} True if the url is in this sites first party set.
  */
 function _isFirstParty(url) {
-    const data = new URL(url)
-    const dataOwner = getOwner(data.domain)
+    const data = new this.sharedData.URL(url)
+    const dataOwner = this.getOwner(data.domain)
     if (data.domain === this.domain || ((dataOwner && this.owner) && dataOwner === this.owner)) {
         return true
     }
@@ -144,14 +149,14 @@ function isRootSite(request, site) {
  *  @param {Object} requestData - The raw request data
  *  @param {Site} site - the current site object
  */
-async function _processRequest (requestData, site) {
-    const request = new Request(requestData, site)
+async function _processRequest (requestData, site, sharedData) {
+    const request = new Request(requestData, site, sharedData)
 
     // If this request is a subdomain of the site, see if it is cnamed
     if (site.isFirstParty(request.url) &&
-        !shared.config.treatCnameAsFirstParty &&
+        !sharedData.config.treatCnameAsFirstParty &&
         !isRootSite(request, site) &&
-        !cnameHelper.isSubdomainExcluded(request.data)
+        !cnameHelper.isSubdomainExcluded(request.data, sharedData)
     ) {
         const cnames = await cnameHelper.resolveCname(request.url)
         if (cnames) {
@@ -171,7 +176,7 @@ async function _processRequest (requestData, site) {
     }
    
 
-    if (site.isFirstParty(request.url) && !shared.config.keepFirstParty) {
+    if (site.isFirstParty(request.url) && !sharedData.config.keepFirstParty) {
         return
     }
 
