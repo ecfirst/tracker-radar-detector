@@ -33,9 +33,16 @@ async function processSite(siteData) {
     }
 
     const site = new Site(siteData)
+    let reqCount = 0
+    const requestTotal = siteData.data.requests.length
 
     for (const request of siteData.data.requests) {
         await site.processRequest(request)
+        if (showme) {
+            reqCount++
+            tempCounter = processedSites + 1
+            console.log(`Processed request: ${reqCount}/${requestTotal} for site #: ${tempCounter}`)
+        }
         crawl.stats.requests++
     }
 
