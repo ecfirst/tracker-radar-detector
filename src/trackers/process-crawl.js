@@ -35,18 +35,19 @@ async function processSite(siteData) {
     const site = new Site(siteData)
     let reqCount = 0
     const requestTotal = siteData.data.requests.length
+    tempCounter = processedSites + 1
 
     for (const request of siteData.data.requests) {
         await site.processRequest(request)
         if (showme) {
             reqCount++
-            tempCounter = processedSites + 1
-            console.log(`Processed request: ${reqCount}/${requestTotal} for site #: ${tempCounter}`)
+            console.log(`Processed request: ${reqCount}/${requestTotal} for site #: ${tempCounter}/${totalSites}`)
         }
         crawl.stats.requests++
     }
 
     // update crawl level domain prevalence, entity prevalence, and fingerprinting
+    console.log(`Processing site: ${tempCounter}/${totalSites}`)
     await crawl.processSite(site)
     crawl.stats.sites++
     if (showme) {
