@@ -6,10 +6,15 @@ const sharedData = require('./helpers/sharedData.js')
 const crawl = require('./classes/crawl.js')
 const Site = require('./classes/site.js')
 
+const args = process.argv.slice(2)
+const showme = args.includes('showme')
+
 const {JSONFileDataReader, PostgresDataReader} = require('./helpers/readers')
 
 console.log(`Reading crawl from: ${sharedData.config.crawlerDataLoc}`)
 let bar
+let processedSites = 0
+let totalSites = 0
 
 // Process a single site crawler file. This will look through each request in the file
 // and update the corresponding entry in the global commonRequests object with new data
@@ -19,7 +24,11 @@ async function processSite(siteData) {
     // check that the crawl for this site finished and has data to process
     if (!siteData.initialUrl || !(siteData.data.requests)) { // && siteData.data.requests.length)) {
         crawl.stats.requestsSkipped += 1
-        bar.tick()
+        if (showme) {
+            console.log(`Skipped site ${crawl.stats.sites + 1}/${totalSites} — no data`)
+        } else {
+            bar.tick()
+        }
         return
     }
 
@@ -33,7 +42,12 @@ async function processSite(siteData) {
     // update crawl level domain prevalence, entity prevalence, and fingerprinting
     await crawl.processSite(site)
     crawl.stats.sites++
-    bar.tick()
+    if (showme) {
+        processedSites++
+        console.log(`Processed site ${processedSites}/${totalSites}`)
+    } else {
+        bar.tick()
+    }
 }
 
 async function processCrawl() {
@@ -42,7 +56,10 @@ async function processCrawl() {
         : new JSONFileDataReader(sharedData.config.crawlerDataLoc)
     console.time("runtime")
     try {
-        bar = new Progress('Process crawl [:bar] :percent', {width: 40, total: await reader.length()})
+        totalSites = await reader.length()
+        if (!showme) {
+            bar = new Progress('Process crawl [:bar] :percent', {width: 40, total: totalSites})
+        }
 
         const sitesQueue = []
         for await (const siteData of reader.iterator()) {
