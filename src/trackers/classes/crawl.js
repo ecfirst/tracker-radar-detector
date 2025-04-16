@@ -326,6 +326,7 @@ function _writeSummaries (crawl) {
 
     for (let i=0; i<requestArrayLen; i+=CHUNK) {
         const requestArrayChunk = requestsArray.slice(i, i+CHUNK)
+        console.log(`Working chunk: ${i}`)
         fs.writeFileSync(`${shared.config.trackerDataLoc}/commonRequests-${i/CHUNK}.json`, JSON.stringify(requestArrayChunk, null, 4))
     }
 
